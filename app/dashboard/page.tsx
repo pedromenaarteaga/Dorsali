@@ -45,6 +45,13 @@ type CuotaPendiente = {
   monto: number | string;
 };
 
+type RegistroEntrenamiento = {
+  entrenamiento_id: string | number;
+  minutos: number | string | null;
+  rpe: number | string | null;
+  created_at?: string | null;
+};
+
 type LoadState = "loading" | "onboarding" | "ready";
 
 function startOfMonthIso() {
@@ -184,14 +191,17 @@ export default function DashboardPage() {
         .eq("equipo_id", usuario.equipo_id),
     ]);
 
-    let registros = registrosResult.data ?? [];
+    let registros: RegistroEntrenamiento[] = registrosResult.data ?? [];
     if (registrosResult.error) {
       const fallback = await supabase
         .from("registro_entrenamientos")
         .select("entrenamiento_id, minutos, rpe")
         .eq("usuario_id", usuario.id)
         .order("entrenamiento_id", { ascending: false });
-      registros = fallback.data ?? [];
+      registros = (fallback.data ?? []).map((row) => ({
+        ...row,
+        created_at: undefined,
+      }));
     }
 
     setProximoPartido(partido ?? null);
