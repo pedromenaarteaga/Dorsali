@@ -19,6 +19,8 @@ import {
   useNotifications,
 } from "@/components/dashboard/notifications";
 
+export const dynamic = "force-dynamic";
+
 type Partido = {
   id: string | number;
   rival: string;
@@ -46,10 +48,23 @@ type Alineacion = {
 
 type Analisis = {
   id: string | number;
+  partido_id?: string | number;
   usuario_id: string | number;
+  tipo?: string | null;
   mensaje: string;
-  created_at?: string | null;
+  fecha?: string | null;
 };
+
+function normalizeAnalisisRow(row: Record<string, unknown>): Analisis {
+  return {
+    id: row.id as string | number,
+    partido_id: row.partido_id as string | number | undefined,
+    usuario_id: row.usuario_id as string | number,
+    tipo: (row.tipo as string | null | undefined) ?? null,
+    mensaje: String(row.mensaje ?? row.comentario ?? ""),
+    fecha: (row.fecha ?? row.created_at ?? null) as string | null,
+  };
+}
 
 type TabId = "nomina" | "tactica" | "analisis";
 type EstadoAsistencia = "Voy" | "No voy" | "Pendiente";
@@ -204,9 +219,9 @@ export default function PartidoDetailPage() {
         .eq("partido_id", partidoId),
       supabase
         .from("analisis_partidos")
-        .select("id, usuario_id, mensaje, created_at")
+        .select("id, partido_id, tipo, mensaje, fecha, usuario_id")
         .eq("partido_id", partidoId)
-        .order("created_at", { ascending: true }),
+        .order("fecha", { ascending: true }),
     ]);
 
     if (jugadoresResult.error) setError(jugadoresResult.error.message);
@@ -217,7 +232,7 @@ export default function PartidoDetailPage() {
     setJugadores(jugadoresResult.data ?? []);
     setAsistencias(asistenciaResult.data ?? []);
     setAlineaciones(alineacionResult.data ?? []);
-    setAnalisis(analisisResult.data ?? []);
+    setAnalisis((analisisResult.data ?? []).map((row) => normalizeAnalisisRow(row as Record<string, unknown>)));
     setIsLoading(false);
   }, [partidoId, router]);
 
@@ -388,9 +403,11 @@ export default function PartidoDetailPage() {
       .insert({
         partido_id: partido.id,
         usuario_id: usuarioId,
+        tipo: "comentario",
         mensaje: comentario.trim(),
+        fecha: new Date().toISOString(),
       })
-      .select("id, usuario_id, mensaje, created_at")
+      .select("id, partido_id, tipo, mensaje, fecha, usuario_id")
       .single();
 
     if (insertError || !data) {
@@ -400,7 +417,7 @@ export default function PartidoDetailPage() {
       return;
     }
 
-    setAnalisis((current) => [...current, data]);
+    setAnalisis((current) => [...current, normalizeAnalisisRow(data as Record<string, unknown>)]);
     setComentario("");
     setSavingComment(false);
   }
@@ -658,7 +675,7 @@ export default function PartidoDetailPage() {
                         <p className="text-sm font-semibold text-white">
                           {autor?.nombre ?? "Cuerpo técnico"}
                         </p>
-                        <span className="text-xs text-zinc-500">{formatCommentTime(item.created_at)}</span>
+                        <span className="text-xs text-zinc-500">{formatCommentTime(item.fecha)}</span>
                       </div>
                       <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-zinc-300">
                         {item.mensaje}
