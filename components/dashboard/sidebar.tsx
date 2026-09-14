@@ -12,6 +12,7 @@ import {
   Wallet,
   X,
 } from "lucide-react";
+import { NotificationsBell } from "@/components/dashboard/notifications";
 
 const navItems = [
   { href: "/dashboard", label: "Inicio", icon: Home },
@@ -43,14 +44,17 @@ export function DashboardSidebar() {
         <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#c8ff00]">
           Dorsali
         </p>
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="rounded-lg border border-white/10 p-2 text-zinc-200 transition hover:border-[#c8ff00]/40 hover:text-[#c8ff00]"
-          aria-label="Abrir menú"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationsBell />
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="rounded-lg border border-white/10 p-2 text-zinc-200 transition hover:border-[#c8ff00]/40 hover:text-[#c8ff00]"
+            aria-label="Abrir menú"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       {isOpen ? (

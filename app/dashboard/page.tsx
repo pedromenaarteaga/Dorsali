@@ -16,11 +16,12 @@ import {
 } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { createSupabaseBrowserClient } from "@/utils/supabase/client";
+import { formatDorsal, hasDorsal } from "@/utils/jugador";
 
 type UsuarioPerfil = {
   id: string | number;
   nombre: string;
-  dorsal: number | string;
+  dorsal: number | string | null;
   equipoId: string | number;
   equipoNombre: string;
 };
@@ -102,7 +103,6 @@ export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [equipoNombre, setEquipoNombre] = useState("");
   const [nombreReal, setNombreReal] = useState("");
-  const [dorsal, setDorsal] = useState("");
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [proximoPartido, setProximoPartido] = useState<ProximoPartido | null>(null);
@@ -247,10 +247,8 @@ export default function DashboardPage() {
     setError("");
     setIsSaving(true);
 
-    const dorsalNumero = Number(dorsal);
-
-    if (!equipoNombre.trim() || !nombreReal.trim() || Number.isNaN(dorsalNumero)) {
-      setError("Completa el nombre del equipo, tu nombre y un dorsal válido.");
+    if (!equipoNombre.trim() || !nombreReal.trim()) {
+      setError("Completa el nombre del equipo y tu nombre.");
       setIsSaving(false);
       return;
     }
@@ -271,7 +269,7 @@ export default function DashboardPage() {
     const { error: usuarioError } = await supabase.from("usuarios").insert({
       equipo_id: equipo.id,
       nombre: nombreReal.trim(),
-      dorsal: dorsalNumero,
+      dorsal: null,
       rol: "admin",
       email,
     });
@@ -320,12 +318,10 @@ export default function DashboardPage() {
         <OnboardingForm
           equipoNombre={equipoNombre}
           nombreReal={nombreReal}
-          dorsal={dorsal}
           error={error}
           isSaving={isSaving}
           onEquipoNombreChange={setEquipoNombre}
           onNombreRealChange={setNombreReal}
-          onDorsalChange={setDorsal}
           onSubmit={handleOnboarding}
         />
       ) : null}
@@ -361,22 +357,18 @@ function LoadingState() {
 function OnboardingForm({
   equipoNombre,
   nombreReal,
-  dorsal,
   error,
   isSaving,
   onEquipoNombreChange,
   onNombreRealChange,
-  onDorsalChange,
   onSubmit,
 }: {
   equipoNombre: string;
   nombreReal: string;
-  dorsal: string;
   error: string;
   isSaving: boolean;
   onEquipoNombreChange: (value: string) => void;
   onNombreRealChange: (value: string) => void;
-  onDorsalChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   const inputClassName =
@@ -415,21 +407,6 @@ function OnboardingForm({
             value={nombreReal}
             onChange={(event) => onNombreRealChange(event.target.value)}
             placeholder="Pedro Amenábar"
-            className={inputClassName}
-          />
-        </label>
-
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-zinc-300">Tu Dorsal (número)</span>
-          <input
-            type="number"
-            name="dorsal"
-            required
-            min={0}
-            max={99}
-            value={dorsal}
-            onChange={(event) => onDorsalChange(event.target.value)}
-            placeholder="10"
             className={inputClassName}
           />
         </label>
@@ -483,13 +460,17 @@ function CommandCenter({
           <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
             Bienvenido a {perfil.equipoNombre}
           </h1>
-          <p className="mt-2 text-sm text-zinc-400">
-            {perfil.nombre} · Dorsal #{perfil.dorsal}
-          </p>
+          <p className="mt-2 text-sm text-zinc-400">{perfil.nombre}</p>
         </div>
-        <span className="w-fit rounded-full border border-[#c8ff00]/30 bg-[#c8ff00]/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[#c8ff00]">
-          En juego
-        </span>
+        {hasDorsal(perfil.dorsal) ? (
+          <span className="w-fit rounded-full bg-[#c8ff00] px-3 py-1 text-sm font-black tracking-tight text-[#121212] shadow-[0_0_18px_rgba(200,255,0,0.28)]">
+            {formatDorsal(perfil.dorsal)}
+          </span>
+        ) : (
+          <span className="w-fit rounded-full border border-[#c8ff00]/30 bg-[#c8ff00]/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-[#c8ff00]">
+            En juego
+          </span>
+        )}
       </header>
 
       {error ? (

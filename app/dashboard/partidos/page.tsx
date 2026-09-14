@@ -1,9 +1,11 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CalendarClock, ChevronDown, MapPin, Plus, Trophy, X } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/utils/supabase/client";
+import { JugadorIdentity } from "@/components/jugador-identity";
 
 type Partido = {
   id: string | number;
@@ -415,20 +417,28 @@ export default function PartidosPage() {
                     {resumen.voy} van · {resumen.noVoy} no van · {resumen.pendiente} pendientes
                   </p>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpandedPartidoId((current) =>
-                        current === partido.id ? null : partido.id,
-                      )
-                    }
-                    className="mt-5 inline-flex w-full items-center justify-between rounded-xl border border-white/10 bg-[#121212] px-4 py-3 text-sm font-semibold text-zinc-200 transition hover:border-[#c8ff00]/40 hover:text-[#c8ff00]"
-                  >
-                    Ver Asistencia
-                    <ChevronDown
-                      className={`h-4 w-4 transition ${isExpanded ? "rotate-180 text-[#c8ff00]" : ""}`}
-                    />
-                  </button>
+                  <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                    <Link
+                      href={`/dashboard/partidos/${partido.id}`}
+                      className="inline-flex items-center justify-center rounded-xl bg-[#c8ff00] px-4 py-3 text-sm font-black uppercase tracking-[0.12em] text-[#121212] transition hover:bg-[#d6ff4d]"
+                    >
+                      Abrir ficha
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedPartidoId((current) =>
+                          current === partido.id ? null : partido.id,
+                        )
+                      }
+                      className="inline-flex items-center justify-between rounded-xl border border-white/10 bg-[#121212] px-4 py-3 text-sm font-semibold text-zinc-200 transition hover:border-[#c8ff00]/40 hover:text-[#c8ff00]"
+                    >
+                      Ver Asistencia
+                      <ChevronDown
+                        className={`h-4 w-4 transition ${isExpanded ? "rotate-180 text-[#c8ff00]" : ""}`}
+                      />
+                    </button>
+                  </div>
 
                   {isExpanded ? (
                     <ul className="mt-4 divide-y divide-white/10 overflow-hidden rounded-xl border border-white/10">
@@ -447,12 +457,7 @@ export default function PartidosPage() {
                               key={jugador.id}
                               className="flex flex-col gap-3 bg-[#141414] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                             >
-                              <div>
-                                <p className="font-medium text-white">{jugador.nombre}</p>
-                                {jugador.dorsal !== null && jugador.dorsal !== undefined ? (
-                                  <p className="text-xs text-zinc-500">Dorsal #{jugador.dorsal}</p>
-                                ) : null}
-                              </div>
+                              <JugadorIdentity nombre={jugador.nombre} dorsal={jugador.dorsal} />
                               <div className="flex flex-wrap gap-2">
                                 {(
                                   [

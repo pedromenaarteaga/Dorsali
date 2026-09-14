@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarClock, ChevronDown, Plus, Wallet, X } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/utils/supabase/client";
+import { JugadorIdentity } from "@/components/jugador-identity";
 
 type Cuota = {
   id: string | number;
@@ -383,12 +384,7 @@ export default function TesoreriaPage() {
                               key={jugador.id}
                               className="flex items-center justify-between gap-4 bg-[#141414] px-4 py-3"
                             >
-                              <div>
-                                <p className="font-medium text-white">{jugador.nombre}</p>
-                                {jugador.dorsal !== null && jugador.dorsal !== undefined ? (
-                                  <p className="text-xs text-zinc-500">Dorsal #{jugador.dorsal}</p>
-                                ) : null}
-                              </div>
+                              <JugadorIdentity nombre={jugador.nombre} dorsal={jugador.dorsal} />
                               <button
                                 type="button"
                                 disabled={isUpdating}
